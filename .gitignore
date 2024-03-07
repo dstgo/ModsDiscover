@@ -8,6 +8,12 @@
 *.so
 *.dylib
 
+bin
+
+# IDE ext dir
+.idea
+.vscode
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -19,7 +25,3 @@
 
 # Go workspace file
 go.work
-
-# IDE workspace files
-.idea
-.vscode
