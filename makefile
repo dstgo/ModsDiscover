@@ -1,13 +1,33 @@
-app_package := github.com/dstgo/tracker/cmd/tracker
 app_name := tracker
-go_os := $(shell go env GOOS)
-target := $(app_name)
+app_package := github.com/dstgo/tracker/cmd/tracker
+hostos := $(shell go env GOHOSTOS)
+hostarch := $(shell go env GOHOSTARCH)
+os =
+arch =
+exe =
 
-ifeq ($(go_os), windows)
-	target := $(app_name).exe
+ifeq ($(os),)
+	os := $(shell go env GOOS)
 endif
+ifeq ($(arch),)
+	arch := $(shell go env GOARCH)
+endif
+ifeq ($(os),windows)
+	exe = .exe
+endif
+
+bin := $(app_name)-$(os)-$(arch)$(exe)
 
 .PHONY: build
 build:
+	# set target environment
+	go env -w GOOS=$(os)
+	go env -w GOARCH=$(arch)
+	# lint check
 	go vet ./...
-	go build -trimpath -o ./bin/$(app_name)/$(target) $(app_package)
+	# build binary file
+	go build -trimpath -o ./build/$(bin) $(app_package)
+
+	# resume host environment
+	go env -w GOOS=$(hostos)
+	go env -w GOARCH=$(hostarch)
