@@ -21,6 +21,7 @@ type HttpConf struct {
 	IdleTimeout  time.Duration `mapstructure:"idleTimeout"`
 	CertFile     string        `mapstructure:"cert"`
 	KeyFile      string        `mapstructure:"key"`
+	CacheTTL     time.Duration `mapstructure:"cacheTTL"`
 }
 
 type LogConf struct {
