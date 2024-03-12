@@ -1,0 +1,32 @@
+# http server config
+http:
+  listen: 127.0.0.1:8080
+  base: /api/v1
+  writeTimeout: 3m
+  readTimeout: 3m
+  idleTimeout: 3m
+  certFile:
+  keyFile:
+
+# log config
+log:
+  file: /etc/tracker/server.log
+  level: INFO
+
+# mongodb config
+db:
+  address: 127.0.0.1:2468
+  user: admin
+  password: 123456
+  database: tracker
+  params: xxxxxxxxx
+
+# redis config
+redis:
+  address: 127.0.0.1:6379
+  auth: 123456
+
+# dst config
+dst:
+  steamKey: xxxxxxxxx
+  kleiToken: xxxxxxxxx
