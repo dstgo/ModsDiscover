@@ -26,7 +26,7 @@ build:
 	# lint check
 	go vet ./...
 	# build binary file
-	go build -trimpath -o ./build/$(bin) $(app_package)
+	go build -trimpath -o ./bin/$(bin) $(app_package)
 
 	# resume host environment
 	go env -w GOOS=$(hostos)
