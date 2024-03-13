@@ -9,10 +9,11 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/dstgo/tracker/conf"
 	"github.com/dstgo/tracker/types"
+	"github.com/go-kratos/aegis/ratelimit"
+	"github.com/go-kratos/aegis/ratelimit/bbr"
 	"github.com/go-redis/redis/v8"
 	"github.com/hertz-contrib/cache"
 	"github.com/hertz-contrib/cache/persist"
-	"github.com/hertz-contrib/limiter"
 	"github.com/hertz-contrib/logger/accesslog"
 	"github.com/hertz-contrib/requestid"
 	"net/http"
@@ -90,10 +91,9 @@ func cacheHandler(redisCli *redis.Client, httpConf conf.HttpConf) app.HandlerFun
 }
 
 func limiterHandler() app.HandlerFunc {
+	limiter := bbr.NewLimiter()
 	return func(c context.Context, ctx *app.RequestContext) {
-		limiter.AdaptiveLimit()
-		newLimiter := limiter.NewLimiter()
-		done, err := newLimiter.Allow()
+		done, err := limiter.Allow()
 		if err != nil {
 			ctx.AbortWithStatusJSON(consts.StatusTooManyRequests, types.Response{
 				Code: consts.StatusTooManyRequests,
@@ -102,7 +102,7 @@ func limiterHandler() app.HandlerFunc {
 			})
 		} else {
 			ctx.Next(c)
-			done()
+			done(ratelimit.DoneInfo{})
 		}
 	}
 }
