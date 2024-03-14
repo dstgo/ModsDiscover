@@ -43,8 +43,10 @@ type RedisConf struct {
 }
 
 type DstConf struct {
-	SteamKey  string `mapstructure:"steamKey"`
-	KleiToken string `mapstructure:"kleiToken"`
+	SteamKey  string        `mapstructure:"steamKey"`
+	KleiToken string        `mapstructure:"kleiToken"`
+	ProxyURL  string        `mapstructure:"proxyURL"`
+	Timeout   time.Duration `mapstructure:"timeout"`
 }
 
 // Load tries to load config file and unmarshal it to *AppConf
