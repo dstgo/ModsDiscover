@@ -159,14 +159,14 @@ func (l *LobbyRepo) FindServers(ctx context.Context, page, size int, sort string
 }
 
 type LobbyStatisticItem struct {
-	Label  string `json:"label:" bson:"label"`
-	Online int64  `json:"online" bson:"online"`
-	Total  int64  `json:"total" bson:"total"`
+	Label         string `json:"label:" bson:"label"`
+	TotalServers  int64  `json:"totalServers" bson:"totalServers"`
+	OnlinePlayers int64  `json:"onlinePlayers" bson:"onlinePlayers"`
 }
 
 type LobbyStatisticInfo struct {
-	Total  int64 `json:"total" bson:"total"`
-	Online int64 `json:"online" bson:"online"`
+	TotalServers  int64 `json:"totalServers" bson:"totalServers"`
+	OnlinePlayers int64 `json:"onlinePlayers" bson:"onlinePlayers"`
 
 	Platforms []LobbyStatisticItem `json:"platforms" bson:"platforms"`
 	Area      []LobbyStatisticItem `json:"area" bson:"area"`
@@ -189,10 +189,10 @@ func (l *LobbyStatisticRepo) InsertOne(ctx context.Context, data LobbyStatisticI
 	return nil
 }
 
-func (l *LobbyStatisticRepo) GetMany(ctx context.Context, before, until int64) ([]LobbyStatisticInfo, error) {
+func (l *LobbyStatisticRepo) GetMany(ctx context.Context, before, until, tail int64) ([]LobbyStatisticInfo, error) {
 	var result []LobbyStatisticInfo
 
-	err := l.col.Find(ctx, bson.M{"ts": bson.M{"$gte": before, "$lte": until}}).All(result)
+	err := l.col.Find(ctx, bson.M{"ts": bson.M{"$gte": before, "$lte": until}}).Sort("ts").Limit(tail).All(&result)
 	if err != nil {
 		return nil, err
 	}

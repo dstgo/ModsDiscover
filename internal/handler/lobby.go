@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"github.com/dstgo/tracker/internal/data/repo"
@@ -11,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"net"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -29,7 +31,7 @@ type LobbyHandler interface {
 	// GetServerDetails returns details information for specific server
 	GetServerDetails(ctx context.Context, region, rowId string) (types.QueryLobbyServerDetailResp, error)
 	// GetStatisticInfo returns statistics information for specific period
-	GetStatisticInfo(ctx context.Context, before, until int64) ([]repo.LobbyStatisticInfo, error)
+	GetStatisticInfo(ctx context.Context, before, until, tail int64) ([]repo.LobbyStatisticInfo, error)
 }
 
 func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, statisticRepo *repo.LobbyStatisticRepo, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
@@ -211,24 +213,25 @@ func (l *LobbyMongoHandler) SyncLocalServers(ctx context.Context, limit int) (in
 		return 0, err
 	}
 
-	// statistic server information
-	if err := l.StatisticServers(ctx, servers); err != nil {
-		return 0, err
-	}
-
 	// store the server information into mongodb
 	inserted, err := l.lobbyRepo.InsertManyServers(ctx, servers)
 	if err != nil {
 		return inserted, err
 	}
+
+	// statistic server information
+	if err := l.StatisticServers(ctx, servers); err != nil {
+		return 0, err
+	}
+
 	return inserted, nil
 }
 
-func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until int64) ([]repo.LobbyStatisticInfo, error) {
+func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until, tail int64) ([]repo.LobbyStatisticInfo, error) {
 	if until <= 0 {
 		until = time.Now().UnixMilli()
 	}
-	statisticInfos, err := l.statisticRepo.GetMany(ctx, before, until)
+	statisticInfos, err := l.statisticRepo.GetMany(ctx, before, until, tail)
 	if err != nil {
 		return []repo.LobbyStatisticInfo{}, err
 	}
@@ -238,9 +241,9 @@ func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until 
 func (l *LobbyMongoHandler) StatisticServers(ctx context.Context, servers []repo.LobbyServer) error {
 
 	statistic := repo.LobbyStatisticInfo{
-		Online: 0,
-		Total:  0,
-		Ts:     time.Now().UnixMilli(),
+		OnlinePlayers: 0,
+		TotalServers:  0,
+		Ts:            time.Now().UnixMilli(),
 	}
 
 	platforms := make(map[string]repo.LobbyStatisticItem, 10)
@@ -248,19 +251,19 @@ func (l *LobbyMongoHandler) StatisticServers(ctx context.Context, servers []repo
 
 	for _, server := range servers {
 
-		statistic.Total++
-		statistic.Online += int64(server.Connected)
+		statistic.TotalServers++
+		statistic.OnlinePlayers += int64(server.Connected)
 
 		// platform
 		platformItem := platforms[server.PlatformName]
-		platformItem.Total++
-		platformItem.Online += int64(server.Connected)
+		platformItem.TotalServers++
+		platformItem.OnlinePlayers += int64(server.Connected)
 		platforms[server.PlatformName] = platformItem
 
 		// area
 		areaItem := areas[server.Area]
-		areaItem.Total++
-		areaItem.Online += int64(server.Connected)
+		areaItem.TotalServers++
+		areaItem.OnlinePlayers += int64(server.Connected)
 		areas[server.Area] = areaItem
 	}
 
@@ -273,6 +276,14 @@ func (l *LobbyMongoHandler) StatisticServers(ctx context.Context, servers []repo
 		item.Label = label
 		statistic.Area = append(statistic.Area, item)
 	}
+
+	slices.SortFunc(statistic.Platforms, func(a, b repo.LobbyStatisticItem) int {
+		return -cmp.Compare(a.TotalServers, b.TotalServers)
+	})
+
+	slices.SortFunc(statistic.Area, func(a, b repo.LobbyStatisticItem) int {
+		return -cmp.Compare(a.TotalServers, b.TotalServers)
+	})
 
 	return l.statisticRepo.InsertOne(ctx, statistic)
 }
@@ -338,6 +349,10 @@ func processLobbyServer(servers []lobbyapi.Server, geoip *geoip2.Reader, region 
 
 		// display platform
 		s.PlatformName = lobbyapi.PlatformDisplayName(s.Region, s.Platform)
+
+		if s.PlatformName == "WeGame" {
+			s.Area = "CN"
+		}
 
 		ans = append(ans, s)
 	}

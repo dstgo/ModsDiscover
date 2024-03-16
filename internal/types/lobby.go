@@ -90,5 +90,6 @@ type QueryLobbyServerDetailResp struct {
 
 type QueryLobbyStatisticOption struct {
 	Until  int64 `query:"until" binding:"gt=0"`
-	Before int64 `before:"before" binding:"gt=0"`
+	Before int64 `query:"before" binding:"gt=0"`
+	Tail   int64 `query:"tail" binding:"gt=0"`
 }

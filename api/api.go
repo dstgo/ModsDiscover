@@ -36,7 +36,7 @@ func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, 
 	lobbyAPI := LobbyAPI{LobbyHandler: lobbyMongoHandler}
 	hertz.GET("/lobby/list", lobbyAPI.List)
 	hertz.GET("/lobby/details", lobbyAPI.Details)
-	hertz.GET("/lobby/statistic", lobbyAPI.Statistic)
+	hertz.GET("/lobby/stat", lobbyAPI.Statistic)
 
 	return &API{
 		Sys:   sysAPI,
