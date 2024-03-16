@@ -46,8 +46,19 @@ func (l *LobbyAPI) Details(c context.Context, ctx *app.RequestContext) {
 	}
 }
 
-// Statistic [GET] /lobby/statistic
+// Statistic [GET] /lobby/statistic?before=xx&until=xx
 // returns statistics information for dst lobby
 func (l *LobbyAPI) Statistic(c context.Context, ctx *app.RequestContext) {
+	var opt types.QueryLobbyStatisticOption
+	if err := ctx.BindAndValidate(&opt); err != nil {
+		resp.Failed(ctx).Error(err).Do()
+		return
+	}
 
+	statisticInfo, err := l.LobbyHandler.GetStatisticInfo(c, opt.Before, opt.Until)
+	if err != nil {
+		resp.Failed(ctx).Error(err).Do()
+	} else {
+		resp.Ok(ctx).Data(statisticInfo).Do()
+	}
 }

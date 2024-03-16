@@ -157,3 +157,44 @@ func (l *LobbyRepo) FindServers(ctx context.Context, page, size int, sort string
 
 	return result, nil
 }
+
+type LobbyStatisticItem struct {
+	Label  string `json:"label:" bson:"label"`
+	Online int64  `json:"online" bson:"online"`
+	Total  int64  `json:"total" bson:"total"`
+}
+
+type LobbyStatisticInfo struct {
+	Total  int64 `json:"total" bson:"total"`
+	Online int64 `json:"online" bson:"online"`
+
+	Platforms []LobbyStatisticItem `json:"platforms" bson:"platforms"`
+	Area      []LobbyStatisticItem `json:"area" bson:"area"`
+	Ts        int64                `json:"ts" bson:"ts"`
+}
+
+func NewLobbyStatisticRepo(cli *qmgo.QmgoClient) *LobbyStatisticRepo {
+	return &LobbyStatisticRepo{col: cli.Database.Collection("lobby_sum")}
+}
+
+type LobbyStatisticRepo struct {
+	col *qmgo.Collection
+}
+
+func (l *LobbyStatisticRepo) InsertOne(ctx context.Context, data LobbyStatisticInfo) error {
+	_, err := l.col.InsertOne(ctx, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *LobbyStatisticRepo) GetMany(ctx context.Context, before, until int64) ([]LobbyStatisticInfo, error) {
+	var result []LobbyStatisticInfo
+
+	err := l.col.Find(ctx, bson.M{"ts": bson.M{"$gte": before, "$lte": until}}).All(result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}

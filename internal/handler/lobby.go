@@ -28,22 +28,26 @@ type LobbyHandler interface {
 	ClearExpiredServers(ctx context.Context, ttl time.Duration) (int64, int64, error)
 	// GetServerDetails returns details information for specific server
 	GetServerDetails(ctx context.Context, region, rowId string) (types.QueryLobbyServerDetailResp, error)
+	// GetStatisticInfo returns statistics information for specific period
+	GetStatisticInfo(ctx context.Context, before, until int64) ([]repo.LobbyStatisticInfo, error)
 }
 
-func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
+func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, statisticRepo *repo.LobbyStatisticRepo, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
 	return &LobbyMongoHandler{
-		lobbyRepo: lobbyRepo,
-		lobby:     lobby,
-		geoip:     geoip,
+		lobbyRepo:     lobbyRepo,
+		lobby:         lobby,
+		geoip:         geoip,
+		statisticRepo: statisticRepo,
 	}
 }
 
 var _ LobbyHandler = (*LobbyMongoHandler)(nil)
 
 type LobbyMongoHandler struct {
-	lobbyRepo *repo.LobbyRepo
-	lobby     *lobbyapi.Client
-	geoip     *geoip2.Reader
+	lobbyRepo     *repo.LobbyRepo
+	statisticRepo *repo.LobbyStatisticRepo
+	lobby         *lobbyapi.Client
+	geoip         *geoip2.Reader
 }
 
 func (l *LobbyMongoHandler) GetServersByPage(ctx context.Context, options types.QueryLobbyServersOptions) (types.PageResult[types.QueryLobbyServersResp], error) {
@@ -207,12 +211,70 @@ func (l *LobbyMongoHandler) SyncLocalServers(ctx context.Context, limit int) (in
 		return 0, err
 	}
 
+	// statistic server information
+	if err := l.StatisticServers(ctx, servers); err != nil {
+		return 0, err
+	}
+
 	// store the server information into mongodb
 	inserted, err := l.lobbyRepo.InsertManyServers(ctx, servers)
 	if err != nil {
 		return inserted, err
 	}
 	return inserted, nil
+}
+
+func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until int64) ([]repo.LobbyStatisticInfo, error) {
+	if until <= 0 {
+		until = time.Now().UnixMilli()
+	}
+	statisticInfos, err := l.statisticRepo.GetMany(ctx, before, until)
+	if err != nil {
+		return []repo.LobbyStatisticInfo{}, err
+	}
+	return statisticInfos, err
+}
+
+func (l *LobbyMongoHandler) StatisticServers(ctx context.Context, servers []repo.LobbyServer) error {
+
+	statistic := repo.LobbyStatisticInfo{
+		Online: 0,
+		Total:  0,
+		Ts:     time.Now().UnixMilli(),
+	}
+
+	platforms := make(map[string]repo.LobbyStatisticItem, 10)
+	areas := make(map[string]repo.LobbyStatisticItem, 100)
+
+	for _, server := range servers {
+
+		statistic.Total++
+		statistic.Online += int64(server.Connected)
+
+		// platform
+		platformItem := platforms[server.PlatformName]
+		platformItem.Total++
+		platformItem.Online += int64(server.Connected)
+		platforms[server.PlatformName] = platformItem
+
+		// area
+		areaItem := areas[server.Area]
+		areaItem.Total++
+		areaItem.Online += int64(server.Connected)
+		areas[server.Area] = areaItem
+	}
+
+	for label, item := range platforms {
+		item.Label = label
+		statistic.Platforms = append(statistic.Platforms, item)
+	}
+
+	for label, item := range areas {
+		item.Label = label
+		statistic.Area = append(statistic.Area, item)
+	}
+
+	return l.statisticRepo.InsertOne(ctx, statistic)
 }
 
 func lobbyRepo2Resp(servers []repo.LobbyServer) []types.QueryLobbyServersResp {

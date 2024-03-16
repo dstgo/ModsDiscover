@@ -87,3 +87,8 @@ type QueryLobbyServerDetailResp struct {
 	QueryLobbyServersResp
 	lobbyapi.Details
 }
+
+type QueryLobbyStatisticOption struct {
+	Until  int64 `query:"until" binding:"gt=0"`
+	Before int64 `before:"before" binding:"gt=0"`
+}

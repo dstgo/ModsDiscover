@@ -18,6 +18,7 @@ type API struct {
 func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, error) {
 
 	hlog.Debug("initializing data repo and creating db index")
+	statisticRepo := repo.NewLobbyStatisticRepo(env.MongoDB)
 	// repositories
 	lobbyRepo, err := repo.NewLobbyRepo(ctx, env.MongoDB)
 	if err != nil {
@@ -25,7 +26,7 @@ func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, 
 	}
 
 	// handler
-	lobbyMongoHandler := handler.NewLobbyMongoHandler(lobbyRepo, env.LobbyCLI, env.GeoIpDB)
+	lobbyMongoHandler := handler.NewLobbyMongoHandler(lobbyRepo, statisticRepo, env.LobbyCLI, env.GeoIpDB)
 
 	// sys api
 	sysAPI := SystemAPI{}
@@ -35,6 +36,7 @@ func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, 
 	lobbyAPI := LobbyAPI{LobbyHandler: lobbyMongoHandler}
 	hertz.GET("/lobby/list", lobbyAPI.List)
 	hertz.GET("/lobby/details", lobbyAPI.Details)
+	hertz.GET("/lobby/statistic", lobbyAPI.Statistic)
 
 	return &API{
 		Sys:   sysAPI,
