@@ -8,7 +8,8 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/dstgo/tracker/conf"
-	"github.com/dstgo/tracker/types"
+	"github.com/dstgo/tracker/internal/types"
+	"github.com/dstgo/tracker/pkg/resp"
 	"github.com/go-kratos/aegis/ratelimit"
 	"github.com/go-kratos/aegis/ratelimit/bbr"
 	"github.com/go-redis/redis/v8"
@@ -17,8 +18,6 @@ import (
 	"github.com/hertz-contrib/logger/accesslog"
 	"github.com/hertz-contrib/requestid"
 	"net/http"
-	"time"
-	_ "time/tzdata"
 )
 
 // returns a new hertz http server
@@ -57,18 +56,12 @@ func accessLogHandler() (app.HandlerFunc, error) {
 		return output.WriteString(requestId)
 	}
 
-	// timezone
-	location, err := time.LoadLocation("Asia/shanghai")
-	if err != nil {
-		return nil, err
-	}
-
 	// format string
 	format := "[${time}] ${status} - ${latency} ${method} ${path} ${url} ${ip} ${ua}"
 	timeformat := "2006-01-02 15:04:05.000000"
 
 	return accesslog.New(
-		accesslog.WithTimeZoneLocation(location),
+		accesslog.WithTimeZoneLocation(types.TimeZone),
 		accesslog.WithFormat(format),
 		accesslog.WithTimeFormat(timeformat),
 	), nil
@@ -95,11 +88,8 @@ func limiterHandler() app.HandlerFunc {
 	return func(c context.Context, ctx *app.RequestContext) {
 		done, err := limiter.Allow()
 		if err != nil {
-			ctx.AbortWithStatusJSON(consts.StatusTooManyRequests, types.Response{
-				Code: consts.StatusTooManyRequests,
-				Data: nil,
-				Msg:  "too many requests",
-			})
+			resp.New(ctx).Status(consts.StatusTooManyRequests).Msg("too many requests").Do()
+			ctx.Abort()
 		} else {
 			ctx.Next(c)
 			done(ratelimit.DoneInfo{})
