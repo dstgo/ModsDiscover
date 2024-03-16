@@ -6,7 +6,6 @@ import (
 	"github.com/dstgo/tracker/internal/data/repo"
 	"github.com/dstgo/tracker/internal/types"
 	"github.com/dstgo/tracker/pkg/lobbyapi"
-	"github.com/go-redis/redis/v8"
 	"github.com/oschwald/geoip2-golang"
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/sync/errgroup"
@@ -31,10 +30,9 @@ type LobbyHandler interface {
 	GetServerDetails(ctx context.Context, region, rowId string) (types.QueryLobbyServerDetailResp, error)
 }
 
-func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, redis *redis.Client, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
+func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
 	return &LobbyMongoHandler{
 		lobbyRepo: lobbyRepo,
-		redis:     redis,
 		lobby:     lobby,
 		geoip:     geoip,
 	}
@@ -44,7 +42,6 @@ var _ LobbyHandler = (*LobbyMongoHandler)(nil)
 
 type LobbyMongoHandler struct {
 	lobbyRepo *repo.LobbyRepo
-	redis     *redis.Client
 	lobby     *lobbyapi.Client
 	geoip     *geoip2.Reader
 }

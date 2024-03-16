@@ -22,11 +22,6 @@ db:
   database: tracker
   params:
 
-# redis config
-redis:
-  address: 127.0.0.1:6379
-  auth: 123456
-
 # dst config
 dst:
   proxy: http://127.0.0.1:7890

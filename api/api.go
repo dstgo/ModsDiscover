@@ -25,7 +25,7 @@ func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, 
 	}
 
 	// handler
-	lobbyMongoHandler := handler.NewLobbyMongoHandler(lobbyRepo, env.RedisDB, env.LobbyCLI, env.GeoIpDB)
+	lobbyMongoHandler := handler.NewLobbyMongoHandler(lobbyRepo, env.LobbyCLI, env.GeoIpDB)
 
 	// sys api
 	sysAPI := SystemAPI{}

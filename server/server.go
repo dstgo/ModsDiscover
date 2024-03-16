@@ -80,14 +80,8 @@ func NewTracker(ctx context.Context, logger hlog.FullLogger, appConf *conf.AppCo
 		return nil, err
 	}
 
-	// load redis
-	redisDB, err := data.LoadRedisDB(ctx, appConf.Redis)
-	if err != nil {
-		return nil, err
-	}
-
 	// new server
-	hertz, err := newHttpServer(appConf.Http, redisDB)
+	hertz, err := newHttpServer(appConf.Http)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +103,6 @@ func NewTracker(ctx context.Context, logger hlog.FullLogger, appConf *conf.AppCo
 	env := &types.Env{
 		Logger:   logger,
 		MongoDB:  mgodb,
-		RedisDB:  redisDB,
 		LobbyCLI: lobbyClient,
 		SteamCLI: steamClient,
 		GeoIpDB:  geoIpDB,
@@ -145,9 +138,6 @@ func NewTracker(ctx context.Context, logger hlog.FullLogger, appConf *conf.AppCo
 		}
 		hlog.Info("mongodb closed successfully")
 
-		if err := redisDB.Close(); err != nil {
-			hlog.Error("failed to close redis client", err)
-		}
 		hlog.Info("redis closed successfully")
 
 		if err := geoIpDB.Close(); err != nil {

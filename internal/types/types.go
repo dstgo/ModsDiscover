@@ -4,7 +4,6 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/dstgo/steamapi"
 	"github.com/dstgo/tracker/pkg/lobbyapi"
-	"github.com/go-redis/redis/v8"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/qiniu/qmgo"
 	"time"
@@ -27,7 +26,6 @@ type PageResult[T any] struct {
 
 type Env struct {
 	MongoDB  *qmgo.QmgoClient
-	RedisDB  *redis.Client
 	LobbyCLI *lobbyapi.Client
 	SteamCLI *steamapi.Client
 	GeoIpDB  *geoip2.Reader

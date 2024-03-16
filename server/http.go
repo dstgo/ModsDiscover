@@ -12,7 +12,6 @@ import (
 	"github.com/dstgo/tracker/pkg/resp"
 	"github.com/go-kratos/aegis/ratelimit"
 	"github.com/go-kratos/aegis/ratelimit/bbr"
-	"github.com/go-redis/redis/v8"
 	"github.com/hertz-contrib/cache"
 	"github.com/hertz-contrib/cache/persist"
 	"github.com/hertz-contrib/logger/accesslog"
@@ -21,7 +20,7 @@ import (
 )
 
 // returns a new hertz http server
-func newHttpServer(httpConf conf.HttpConf, client *redis.Client) (*server.Hertz, error) {
+func newHttpServer(httpConf conf.HttpConf) (*server.Hertz, error) {
 	hertz := server.New(
 		server.WithHostPorts(httpConf.Listen),
 		server.WithReadTimeout(httpConf.ReadTimeout),
@@ -44,7 +43,7 @@ func newHttpServer(httpConf conf.HttpConf, client *redis.Client) (*server.Hertz,
 		// log handler
 		logHandler,
 		// cache handler
-		cacheHandler(client, httpConf),
+		cacheHandler(httpConf),
 	)
 
 	return hertz, nil
@@ -77,8 +76,8 @@ func recoveryHandler() app.HandlerFunc {
 	)
 }
 
-func cacheHandler(redisCli *redis.Client, httpConf conf.HttpConf) app.HandlerFunc {
-	store := persist.NewRedisStore(redisCli)
+func cacheHandler(httpConf conf.HttpConf) app.HandlerFunc {
+	store := persist.NewMemoryStore(httpConf.CacheTTL)
 	cacheH := cache.NewCacheByRequestURIWithIgnoreQueryOrder(store, httpConf.CacheTTL, cache.WithPrefixKey("tracker-cache-"))
 	return cacheH
 }

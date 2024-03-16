@@ -6,11 +6,10 @@ import (
 )
 
 type AppConf struct {
-	Http  HttpConf  `mapstructure:"http"`
-	Log   LogConf   `mapstructure:"log"`
-	DB    DBConf    `mapstructure:"db"`
-	Redis RedisConf `mapstructure:"redis"`
-	Dst   DstConf   `mapstructure:"dst"`
+	Http HttpConf `mapstructure:"http"`
+	Log  LogConf  `mapstructure:"log"`
+	DB   DBConf   `mapstructure:"db"`
+	Dst  DstConf  `mapstructure:"dst"`
 }
 
 type HttpConf struct {
@@ -35,11 +34,6 @@ type DBConf struct {
 	Password string `mapstructure:"password"`
 	DataBase string `mapstructure:"database"`
 	Params   string `mapstructure:"params"`
-}
-
-type RedisConf struct {
-	Address string `mapstructure:"address"`
-	Auth    string `mapstructure:"auth"`
 }
 
 type DstConf struct {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dstgo/tracker/assets"
 	"github.com/dstgo/tracker/conf"
-	"github.com/go-redis/redis/v8"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/qiniu/qmgo"
 	"gorm.io/driver/mysql"
@@ -35,18 +34,6 @@ func LoadMongoDB(ctx context.Context, dbConf conf.DBConf) (*qmgo.QmgoClient, err
 	}
 
 	return mgocli, nil
-}
-
-func LoadRedisDB(ctx context.Context, rdConf conf.RedisConf) (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     rdConf.Address,
-		Password: rdConf.Auth,
-	})
-	pingRes := client.Ping(ctx)
-	if err := pingRes.Err(); err != nil {
-		return nil, err
-	}
-	return client, nil
 }
 
 func LoadGeoIpDBInMem(file string) (*geoip2.Reader, error) {
