@@ -129,21 +129,19 @@ func NewTracker(ctx context.Context, logger hlog.FullLogger, appConf *conf.AppCo
 
 	// on shutdown
 	onShutdown := func(ctx context.Context) {
-		// wait for all jobs were stopped
-		<-cronJobs.Stop().Done()
-		hlog.Info("cron jobs stopped successfully")
-
 		if err := mgodb.Close(context.Background()); err != nil {
 			hlog.Error("failed to close mongodb client", err)
 		}
 		hlog.Info("mongodb closed successfully")
 
-		hlog.Info("redis closed successfully")
-
 		if err := geoIpDB.Close(); err != nil {
 			hlog.Error("failed to close geo db", err)
 		}
 		hlog.Info("geodb closed successfully")
+
+		// wait for all jobs were stopped
+		<-cronJobs.Stop().Done()
+		hlog.Info("cron jobs stopped successfully")
 	}
 
 	return &Server{
