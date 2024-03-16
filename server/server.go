@@ -36,7 +36,6 @@ func (s *Server) Serve() {
 
 	// run the server
 	go func() {
-		s.server.Spin()
 		run <- s.server.Run()
 		close(run)
 	}()
