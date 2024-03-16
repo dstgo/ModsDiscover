@@ -56,13 +56,11 @@ func accessLogHandler() (app.HandlerFunc, error) {
 	}
 
 	// format string
-	format := "[${time}] ${status} - ${latency} ${method} ${path} ${url} ${ip} ${ua}"
-	timeformat := "2006-01-02 15:04:05.000000"
+	format := "${status}   -${latency} ${method} ${url} ${ip} ${queryParams} ${resHeaders}"
 
 	return accesslog.New(
 		accesslog.WithTimeZoneLocation(types.TimeZone),
 		accesslog.WithFormat(format),
-		accesslog.WithTimeFormat(timeformat),
 	), nil
 }
 
