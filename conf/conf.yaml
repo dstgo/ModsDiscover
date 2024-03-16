@@ -20,7 +20,7 @@ db:
   user: admin
   password: 123456
   database: tracker
-  params: xxxxxxxxx
+  params:
 
 # redis config
 redis:
@@ -29,7 +29,17 @@ redis:
 
 # dst config
 dst:
-  proxy: http://127.0.0.1:8080
-  timeout: 20s
+  proxy: http://127.0.0.1:7890
   steamKey: xxxxxxxxx
   kleiToken: xxxxxxxxx
+  lobby:
+    # collect info every 2 minutes
+    collect: "*/2 * * * *"
+    # clear expired info at 03:00 per day
+    clear: "0 3 */1 * *"
+    # live time of collected data
+    ttl: 3d
+    # max cost time of collect
+    timeout: 60s
+
+
