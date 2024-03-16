@@ -33,12 +33,12 @@ func (s *Server) Serve() {
 	defer cancelFunc()
 
 	run := make(chan error)
-	defer close(run)
 
 	// run the server
 	go func() {
 		s.server.Spin()
 		run <- s.server.Run()
+		close(run)
 	}()
 
 	select {
@@ -58,11 +58,11 @@ func (s *Server) Serve() {
 	defer cancel()
 
 	done := make(chan struct{})
-	defer close(done)
 
 	go func() {
 		s.cleanup(timeoutCtx)
 		done <- struct{}{}
+		close(done)
 	}()
 
 	select {
