@@ -1,6 +1,8 @@
 package types
 
-import "github.com/dstgo/tracker/pkg/lobbyapi"
+import (
+	"github.com/dstgo/tracker/pkg/lobbyapi"
+)
 
 type QueryLobbyServersOptions struct {
 	Page int    `query:"page" default:"1" binding:"gt=0"`
@@ -89,7 +91,8 @@ type QueryLobbyServerDetailResp struct {
 }
 
 type QueryLobbyStatisticOption struct {
-	Until  int64 `query:"until" binding:"gt=0"`
-	Before int64 `query:"before" binding:"gt=0"`
-	Tail   int64 `query:"tail" binding:"gt=0"`
+	Until    int64  `query:"until" binding:"gt=0"`
+	Before   int64  `query:"before" binding:"gt=0"`
+	Tail     int64  `query:"tail" binding:"gt=0"`
+	Duration string `query:"duration"`
 }

@@ -31,7 +31,7 @@ type LobbyHandler interface {
 	// GetServerDetails returns details information for specific server
 	GetServerDetails(ctx context.Context, region, rowId string) (types.QueryLobbyServerDetailResp, error)
 	// GetStatisticInfo returns statistics information for specific period
-	GetStatisticInfo(ctx context.Context, before, until, tail int64) ([]repo.LobbyStatisticInfo, error)
+	GetStatisticInfo(ctx context.Context, before, until, tail int64, duration time.Duration) ([]repo.LobbyStatisticInfo, error)
 }
 
 func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, statisticRepo *repo.LobbyStatisticRepo, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
@@ -227,11 +227,16 @@ func (l *LobbyMongoHandler) SyncLocalServers(ctx context.Context, limit int) (in
 	return inserted, nil
 }
 
-func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until, tail int64) ([]repo.LobbyStatisticInfo, error) {
+func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until, tail int64, duration time.Duration) ([]repo.LobbyStatisticInfo, error) {
 	if until <= 0 {
 		until = time.Now().UnixMilli()
 	}
-	statisticInfos, err := l.statisticRepo.GetMany(ctx, before, until, tail)
+
+	if duration == 0 {
+		duration = time.Hour
+	}
+
+	statisticInfos, err := l.statisticRepo.GetMany(ctx, before, until, tail, duration)
 	if err != nil {
 		return []repo.LobbyStatisticInfo{}, err
 	}

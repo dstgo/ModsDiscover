@@ -6,6 +6,7 @@ import (
 	"github.com/dstgo/tracker/internal/handler"
 	"github.com/dstgo/tracker/internal/types"
 	"github.com/dstgo/tracker/pkg/resp"
+	"time"
 )
 
 type LobbyAPI struct {
@@ -51,11 +52,16 @@ func (l *LobbyAPI) Details(c context.Context, ctx *app.RequestContext) {
 func (l *LobbyAPI) Statistic(c context.Context, ctx *app.RequestContext) {
 	var opt types.QueryLobbyStatisticOption
 	if err := ctx.BindAndValidate(&opt); err != nil {
+
+	}
+
+	duration, err := time.ParseDuration(opt.Duration)
+	if err != nil {
 		resp.Failed(ctx).Error(err).Do()
 		return
 	}
 
-	statisticInfo, err := l.LobbyHandler.GetStatisticInfo(c, opt.Before, opt.Until, opt.Tail)
+	statisticInfo, err := l.LobbyHandler.GetStatisticInfo(c, opt.Before, opt.Until, opt.Tail, duration)
 	if err != nil {
 		resp.Failed(ctx).Error(err).Do()
 	} else {

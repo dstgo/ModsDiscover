@@ -8,6 +8,7 @@ import (
 	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 type LobbyServer struct {
@@ -189,10 +190,32 @@ func (l *LobbyStatisticRepo) InsertOne(ctx context.Context, data LobbyStatisticI
 	return nil
 }
 
-func (l *LobbyStatisticRepo) GetMany(ctx context.Context, before, until, tail int64) ([]LobbyStatisticInfo, error) {
+func (l *LobbyStatisticRepo) GetMany(ctx context.Context, before, until, tail int64, duration time.Duration) ([]LobbyStatisticInfo, error) {
 	var result []LobbyStatisticInfo
 
-	err := l.col.Find(ctx, bson.M{"ts": bson.M{"$gte": before, "$lte": until}}).Sort("ts").Limit(tail).All(&result)
+	if duration <= time.Minute*10 {
+		duration = time.Hour
+	}
+
+	if tail == 0 {
+		tail = 100
+	}
+
+	// convert unit
+	duration /= time.Millisecond
+
+	err := l.col.Aggregate(ctx, qmgo.Pipeline{
+		bson.D{
+			{"$match", bson.M{"ts": bson.M{"$gte": before, "$lte": until, "$mod": bson.A{duration, 0}}}},
+		},
+		bson.D{
+			{"$sort", bson.M{"ts": -1}},
+		},
+		bson.D{
+			{"$limit", tail},
+		},
+	}).All(&result)
+
 	if err != nil {
 		return nil, err
 	}
