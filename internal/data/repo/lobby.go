@@ -39,7 +39,7 @@ func NewLobbyRepo(ctx context.Context, db *qmgo.QmgoClient) (*LobbyRepo, error) 
 		{[]string{"name"}, &options.IndexOptions{}},
 		{[]string{"area"}, &options.IndexOptions{}},
 		{[]string{"platform_name"}, &options.IndexOptions{}},
-		{[]string{"TagNames"}, &options.IndexOptions{}},
+		{[]string{"tag_names"}, &options.IndexOptions{}},
 		{[]string{"created_at"}, &options.IndexOptions{}},
 		{[]string{"row_id"}, &options.IndexOptions{}},
 		{[]string{"game_mode"}, &options.IndexOptions{}},
