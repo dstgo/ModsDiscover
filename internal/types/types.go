@@ -31,3 +31,7 @@ type Env struct {
 	GeoIpDB  *geoip2.Reader
 	Logger   hlog.FullLogger
 }
+
+const (
+	DstAppID = 322330
+)

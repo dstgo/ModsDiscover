@@ -27,8 +27,9 @@ func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, 
 
 	// handler
 	lobbyMongoHandler := handler.NewLobbyMongoHandler(lobbyRepo, statisticRepo, env.LobbyCLI, env.GeoIpDB)
+	modHandler := handler.NewWorkShopHandler(env.SteamCLI)
 
-	// sys api
+	// system api
 	sysAPI := SystemAPI{}
 	hertz.GET("/ts", sysAPI.Ts)
 
@@ -37,6 +38,11 @@ func NewRouter(ctx context.Context, hertz *server.Hertz, env *types.Env) (*API, 
 	hertz.GET("/lobby/list", lobbyAPI.List)
 	hertz.GET("/lobby/details", lobbyAPI.Details)
 	hertz.GET("/lobby/stat", lobbyAPI.Statistic)
+
+	modAPI := ModAPI{modHandler: modHandler}
+	hertz.GET("/mod/search", modAPI.Search)
+
+	// mod api
 
 	return &API{
 		Sys:   sysAPI,
