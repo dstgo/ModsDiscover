@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/bytedance/sonic v1.8.1
 	github.com/cloudwego/hertz v0.8.1
-	github.com/dstgo/steamapi v1.3.0
+	github.com/dstgo/steamapi v1.3.1
 	github.com/go-kratos/aegis v0.2.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.11.0
