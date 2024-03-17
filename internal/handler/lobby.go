@@ -21,17 +21,18 @@ import (
 type LobbyHandler interface {
 	// GetServersByPage returns server list from database by given queryOptions
 	GetServersByPage(ctx context.Context, queryOptions types.QueryLobbyServersOptions) (types.PageResult[types.QueryLobbyServersResp], error)
-	// GetAllServersFromLobby collects and returns server information from klei lobby server
-	GetAllServersFromLobby(ctx context.Context, limit int) ([]repo.LobbyServer, error)
-	// SyncLocalServers collects server information from klei, process and store them into database,
-	// then return how many records has been stored
-	SyncLocalServers(ctx context.Context, limit int) (int, error)
 	// ClearExpiredServers remove expired servers from database
 	ClearExpiredServers(ctx context.Context, ttl time.Duration) (int64, int64, error)
 	// GetServerDetails returns details information for specific server
 	GetServerDetails(ctx context.Context, region, rowId string) (types.QueryLobbyServerDetailResp, error)
 	// GetStatisticInfo returns statistics information for specific period
 	GetStatisticInfo(ctx context.Context, before, until, tail int64, duration time.Duration) ([]repo.LobbyStatisticInfo, error)
+
+	// GetAllServersFromLobby collects and returns server information from klei lobby server
+	GetAllServersFromLobby(ctx context.Context, limit int, ts int64) ([]repo.LobbyServer, error)
+	// SyncLocalServers collects server information from klei, process and store them into database,
+	// then return how many records has been stored
+	SyncLocalServers(ctx context.Context, limit int) (int, error)
 }
 
 func NewLobbyMongoHandler(lobbyRepo *repo.LobbyRepo, statisticRepo *repo.LobbyStatisticRepo, lobby *lobbyapi.Client, geoip *geoip2.Reader) *LobbyMongoHandler {
@@ -136,15 +137,13 @@ func (l *LobbyMongoHandler) GetServerDetails(ctx context.Context, region, rowId 
 }
 
 // GetAllServersFromLobby returns all lobby servers in parallel. Using limit params to limit the number of goroutine
-func (l *LobbyMongoHandler) GetAllServersFromLobby(ctx context.Context, limit int) ([]repo.LobbyServer, error) {
+func (l *LobbyMongoHandler) GetAllServersFromLobby(ctx context.Context, limit int, ts int64) ([]repo.LobbyServer, error) {
 	slog.Info("begin")
 
 	regions, err := l.lobby.GetCapableRegions()
 	if err != nil {
 		return nil, err
 	}
-
-	ts := time.Now().UnixMilli()
 
 	var servers []repo.LobbyServer
 	// protect servers []repo.LobbyServer
@@ -208,7 +207,11 @@ func (l *LobbyMongoHandler) ClearExpiredServers(ctx context.Context, ttl time.Du
 }
 
 func (l *LobbyMongoHandler) SyncLocalServers(ctx context.Context, limit int) (int, error) {
-	servers, err := l.GetAllServersFromLobby(ctx, limit)
+
+	// round zero time
+	ts := time.Now().Round(time.Minute).UnixMilli()
+
+	servers, err := l.GetAllServersFromLobby(ctx, limit, ts)
 	if err != nil {
 		return 0, err
 	}
@@ -220,7 +223,7 @@ func (l *LobbyMongoHandler) SyncLocalServers(ctx context.Context, limit int) (in
 	}
 
 	// statistic server information
-	if err := l.StatisticServers(ctx, servers); err != nil {
+	if err := l.StatisticServers(ctx, ts, servers); err != nil {
 		return 0, err
 	}
 
@@ -243,12 +246,12 @@ func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until,
 	return statisticInfos, err
 }
 
-func (l *LobbyMongoHandler) StatisticServers(ctx context.Context, servers []repo.LobbyServer) error {
+func (l *LobbyMongoHandler) StatisticServers(ctx context.Context, ts int64, servers []repo.LobbyServer) error {
 
 	statistic := repo.LobbyStatisticInfo{
 		OnlinePlayers: 0,
 		TotalServers:  0,
-		Ts:            time.Now().UnixMilli(),
+		Ts:            ts,
 	}
 
 	platforms := make(map[string]repo.LobbyStatisticItem, 10)

@@ -18,7 +18,7 @@ func TestLobbyMongoHandler_GetAllLobbyServers(t *testing.T) {
 
 	handler := LobbyMongoHandler{geoip: geoip, lobby: client}
 
-	servers, err := handler.GetAllServersFromLobby(context.Background(), 30)
+	servers, err := handler.GetAllServersFromLobby(context.Background(), 30, 0)
 	assert.Nil(t, err)
 
 	t.Log(len(servers))
@@ -34,7 +34,7 @@ func TestLobbyMongoHandler_GetAllLobbyServersWithProxy(t *testing.T) {
 
 	handler := LobbyMongoHandler{geoip: geoip, lobby: client}
 
-	servers, err := handler.GetAllServersFromLobby(context.Background(), 30)
+	servers, err := handler.GetAllServersFromLobby(context.Background(), 30, 0)
 	assert.Nil(t, err)
 
 	t.Log(len(servers))
