@@ -235,8 +235,8 @@ func (l *LobbyMongoHandler) GetStatisticInfo(ctx context.Context, before, until,
 		until = time.Now().UnixMilli()
 	}
 
-	if duration == 0 {
-		duration = time.Hour
+	if duration < time.Minute*10 {
+		duration = time.Minute * 10
 	}
 
 	statisticInfos, err := l.statisticRepo.GetMany(ctx, before, until, tail, duration)

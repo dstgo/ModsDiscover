@@ -193,10 +193,6 @@ func (l *LobbyStatisticRepo) InsertOne(ctx context.Context, data LobbyStatisticI
 func (l *LobbyStatisticRepo) GetMany(ctx context.Context, before, until, tail int64, duration time.Duration) ([]LobbyStatisticInfo, error) {
 	var result []LobbyStatisticInfo
 
-	if duration <= time.Minute*10 {
-		duration = time.Hour
-	}
-
 	if tail == 0 {
 		tail = 100
 	}

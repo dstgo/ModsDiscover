@@ -52,7 +52,8 @@ func (l *LobbyAPI) Details(c context.Context, ctx *app.RequestContext) {
 func (l *LobbyAPI) Statistic(c context.Context, ctx *app.RequestContext) {
 	var opt types.QueryLobbyStatisticOption
 	if err := ctx.BindAndValidate(&opt); err != nil {
-
+		resp.Failed(ctx).Error(err).Do()
+		return
 	}
 
 	duration, err := time.ParseDuration(opt.Duration)

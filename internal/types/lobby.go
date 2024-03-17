@@ -94,5 +94,5 @@ type QueryLobbyStatisticOption struct {
 	Until    int64  `query:"until" binding:"gt=0"`
 	Before   int64  `query:"before" binding:"gt=0"`
 	Tail     int64  `query:"tail" binding:"gt=0"`
-	Duration string `query:"duration"`
+	Duration string `query:"duration" default:"1h"`
 }
