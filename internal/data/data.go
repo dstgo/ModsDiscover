@@ -3,8 +3,8 @@ package data
 import (
 	"context"
 	"fmt"
-	"github.com/dstgo/tracker/assets"
 	"github.com/dstgo/tracker/conf"
+	"github.com/dstgo/tracker/internal/assets"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/qiniu/qmgo"
 	"gorm.io/driver/mysql"

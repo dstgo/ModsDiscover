@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/common/test/assert"
-	"github.com/dstgo/tracker/assets"
+	"github.com/dstgo/tracker/internal/assets"
 	"github.com/dstgo/tracker/internal/data"
 	"github.com/dstgo/tracker/pkg/lobbyapi"
 	"github.com/go-resty/resty/v2"
