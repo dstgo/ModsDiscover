@@ -37,7 +37,7 @@ func LoadMongoDB(ctx context.Context, dbConf conf.DBConf) (*qmgo.QmgoClient, err
 }
 
 func LoadGeoIpDBInMem(file string) (*geoip2.Reader, error) {
-	bytes, err := assets.FS.ReadFile(assets.GeopIp2CityDB)
+	bytes, err := assets.FS.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
